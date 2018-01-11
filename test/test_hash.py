@@ -1,4 +1,5 @@
 import unittest
+
 from _blake2 import blake2b
 
 

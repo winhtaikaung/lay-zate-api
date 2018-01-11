@@ -5,8 +5,8 @@ from tornado.ioloop import IOLoop
 
 from db.db_helper import DBHelper
 from handlers.base_handler import BaseHandler
+from routes.flight_route import flight_routes
 from routes.messenger_route import messenger_routes
-from routes.user_route import user_routes
 
 
 class MainHandler(BaseHandler):
@@ -27,7 +27,7 @@ class Application(tornado.web.Application):
             'debug': True
         }
         # This Method is to add all the routes from Route Package
-        handlers.extend(user_routes)
+        handlers.extend(flight_routes)
         handlers.extend(messenger_routes)
         tornado.web.Application.__init__(self, handlers, settings)
         tornado.options.parse_command_line()

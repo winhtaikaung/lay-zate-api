@@ -1,6 +1,7 @@
 from pyquery import PyQuery as pq
 from tornado.ioloop import IOLoop
 
+from entity.base import gen_uuid
 from utils import to_snake_case
 
 
@@ -9,9 +10,12 @@ class LayZateScrapper(object):
         self.io_loop = io_loop or IOLoop.instance()
         pass
 
-    def scrap_response(self, html):
+    def scrap_response(self, html, base_airport, query_time):
         flight_list = []
-        dict_meta = {}
+        dict_meta = {
+            "_base_airport": base_airport,
+            "query_time": query_time
+        }
         d = pq(html)
         fetch_header = pq(d.find(".tableListingTable").html()).find(".header")
 
@@ -20,21 +24,27 @@ class LayZateScrapper(object):
             .find('tr')
         flight_list_html.each(lambda e, fl_row:
                               flight_list.append(
-                                  LayZateScrapper.scrap_row(self, fl_row, pq(fetch_header).text().split(" ")))
+                                  LayZateScrapper.scrap_row(self, fl_row, pq(fetch_header).text().split(" "),
+                                                            base_airport, query_time)
                               )
-        del flight_list[0]
+                              )
+        if len(flight_list) is not 0:
+            del flight_list[0]
         return flight_list
 
-    def scrap_row(self, row, key_val):
+    def scrap_row(self, row, key_val, base_airport, query_time):
         col_dict = {}
         pq(row).find("td").each(lambda i, td:
                                 col_dict.update({
                                     to_snake_case(key_val[i]): pq(td).text().replace("*", "").replace("^", "").replace(
-                                        "(", "").replace(")", "")
+                                        "(", "").replace(")", ""),
+                                    "_base_airport": base_airport,
+                                    "query_time": query_time,
+                                    "id": str(gen_uuid())
                                 })
                                 )
 
         return col_dict
 
-    def get_scrapped_result(self, html, callback=None):
-        return callback(LayZateScrapper.scrap_response(self, html))
+    def get_scrapped_result(self, html, base_airport, query_time, callback=None):
+        return callback(LayZateScrapper.scrap_response(self, html, base_airport, query_time))

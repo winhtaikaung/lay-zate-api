@@ -3,12 +3,12 @@
 
 
 import json
-from _blake2 import blake2b
 
 import os
 import re
 import requests
 import tornado
+from _blake2 import blake2b
 from tornado import gen
 
 from const import QUESTIONS_PAYLOAD, ABOUT_MORE_PAYLOAD, CHECK_PP_PAYLOAD, INITIAL_QUICK_REPLY, ABOUT_QUICK_REPLY, \
@@ -93,7 +93,7 @@ class MessengerHandler(BaseHandler):
                                                          str(message_text).strip().replace(" ", ""), re.M | re.I)
                                     if match_obj:
                                         mom_param = {'travelDocNo': str(message_text).strip().replace(" ", "")}
-                                        mom_request = requests.post(os.environ["MOM_URL"], mom_param)
+                                        mom_request = requests.post(os.environ["FLIGHT_BASE_URL"], mom_param)
                                         response = yield gen.Task(mom_scrapper.get_scrapped_result, self,
                                                                   mom_request.content)
 

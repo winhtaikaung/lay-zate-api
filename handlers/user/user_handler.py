@@ -1,6 +1,5 @@
-from _blake2 import blake2b
-
 import tornado.web
+from _blake2 import blake2b
 from tornado import gen
 
 from db.user_repo import UserRepository
