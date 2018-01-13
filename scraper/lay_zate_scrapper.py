@@ -49,4 +49,6 @@ class LayZateScrapper(object):
         return col_dict
 
     def get_scrapped_result(self, html, base_airport, query_time, callback=None):
-        return callback(LayZateScrapper.scrap_response(self, html, base_airport, query_time))
+        IOLoop.instance().add_timeout(time.time() + 1, lambda:
+        callback(LayZateScrapper.scrap_response(self, html, base_airport, query_time))
+                                      )

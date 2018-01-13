@@ -11,18 +11,21 @@ from db.raw_repo import CacheRepository
 from entity.arrival import Arrival
 from entity.departure import Departure
 from handlers.base_handler import BaseHandler
+from middleware.paging_validator import base_query_string_validator
 from scraper.lay_zate_scrapper import LayZateScrapper
 
 
 class FlightHandler(BaseHandler):
 
     @tornado.web.asynchronous
+    @base_query_string_validator
     @gen.engine
     def get(self, airport_code, arv_dep_type, query_time):
         d = datetime.datetime.utcnow()
         unixtime = calendar.timegm(d.utctimetuple())
         response = []
         api_result = [];
+
         limit = self.get_argument("limit", int(10), True)  # <--- get query_argement
         page = self.get_argument("page", int(1), True)
         params = {'language': 'English',
@@ -38,7 +41,7 @@ class FlightHandler(BaseHandler):
         initial_cache = yield gen.Task(cache_repo.get_raw, airport_code, query_time, arv_dep_type,
                                        )
         if initial_cache is not None:
-            if unixtime - initial_cache.updated_timestamp > 600:
+            if unixtime - initial_cache.updated_timestamp > 300:
                 flight_requst = requests.post(base_url, data=params,
                                               headers={'Content-Type': 'application/x-www-form-urlencoded',
                                                        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Thunderbird/45.3.0'})

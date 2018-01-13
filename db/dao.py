@@ -10,7 +10,6 @@ from entity.base import DBSession
 class Dao(object):
 
     def __init__(self, io_loop=None):
-        self.io_loop = io_loop or IOLoop.instance().add_timeout(time.time() + 1)
         self.db_session = DBSession
         pass
 
@@ -37,7 +36,8 @@ class Dao(object):
         except Exception as e:
             print(e)
             result = None
-        callback(result)
+        IOLoop.instance().add_timeout(time.time() + 0.05, lambda:
+        callback(result))
 
     def create(self, model={}, call_back=None):
         """
@@ -55,7 +55,8 @@ class Dao(object):
             session.rollback()
             result = e
         session.close()
-        call_back(result)
+        IOLoop.instance().add_timeout(time.time() + 0.05, lambda:
+        call_back(result))
 
     def bulk_insert(self, object_list=[], model={}, callback=None):
         session = self.db_session
@@ -95,4 +96,5 @@ class Dao(object):
             print(e)
             result = None
         session.close()
-        callback(result)
+        IOLoop.instance().add_timeout(time.time() + 0.05, lambda:
+        callback(result))

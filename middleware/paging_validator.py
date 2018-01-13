@@ -1,33 +1,51 @@
+import re
+
 from functools import wraps
 
 
 def base_query_string_validator(f):
     @wraps(f)
-    def wrapper(self, request):
+    def wrapper(self, airport_code, arv_dep_type, query_time):
         """
         This method will intercept the request and validate whether token includes in query parameter or not
         :param self: 
         :param request: 
         :return: 
         """
-        if self.get_query_arguments("limit", True) or self.get_query_arguments("page",
-                                                                               True):  # check whether querystring is empty or not
+        if self.get_query_arguments("limit", True) and self.get_query_arguments("page",
+                                                                                True):  # check whether querystring is empty or not
             # Process the request
-            limit = self.get_argument("limit", True)
-            page = self.get_argument("page", True)
-            try:
 
-                if int(limit) <= 100:
-                    f(self, request)
-                    return None
+            try:
+                limit = str(self.get_argument("limit", default=10, strip=True))
+                page = str(self.get_argument("page", default=1, strip=True))
+                limit = re.sub(r"<[^>]*>", "", limit)
+                page = re.sub(r"<[^>]*>", "", page)
+
+                if "-" not in limit and "-" not in page:
+
+                    try:
+
+                        limit = int(limit)
+                        page = int(page)
+                        if int(limit) <= 100:
+                            f(self, airport_code, arv_dep_type, query_time)
+                            return None
+                        else:
+                            self.respond("Limit size should be lower than 100", 400)
+                    except Exception as e:
+                        self.respond("Invalid Param", 400)
                 else:
-                    self.respond("Limit size should be lower than 100", 400)
+                    self.respond("Invalid Param", 400)
+
+
+
             except Exception as e:
                 self.respond("Invalid Param", 400)
 
         # Redirect to Home Page
         elif self.get_query_arguments("id", True):
-            f(self, request)
+            f(self, airport_code, arv_dep_type, query_time)
             return None
         else:
             self.respond("Invalid id or limit", 400)
