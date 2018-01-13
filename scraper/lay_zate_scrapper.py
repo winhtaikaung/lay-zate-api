@@ -1,3 +1,5 @@
+import time
+
 from pyquery import PyQuery as pq
 from tornado.ioloop import IOLoop
 
@@ -7,7 +9,7 @@ from utils import to_snake_case
 
 class LayZateScrapper(object):
     def __init__(self, io_loop=None):
-        self.io_loop = io_loop or IOLoop.instance()
+        self.io_loop = io_loop or IOLoop.instance().add_timeout(time.time() + 1)
         pass
 
     def scrap_response(self, html, base_airport, query_time):
@@ -39,7 +41,7 @@ class LayZateScrapper(object):
                                     to_snake_case(key_val[i]): pq(td).text().replace("*", "").replace("^", "").replace(
                                         "(", "").replace(")", ""),
                                     "_base_airport": base_airport,
-                                    "query_time": query_time,
+                                    "_query_time": query_time,
                                     "id": str(gen_uuid())
                                 })
                                 )

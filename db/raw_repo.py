@@ -8,7 +8,7 @@ from entity.base import DBSession
 from entity.raw import Raw
 
 
-class RawRepository(object):
+class CacheRepository(object):
     def __init__(self, io_loop=None):
         self.io_loop = io_loop or IOLoop.instance()
         self.db_session = DBSession
