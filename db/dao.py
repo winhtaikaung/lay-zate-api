@@ -13,8 +13,8 @@ class Dao(object):
         self.db_session = DBSession
         pass
 
-    def get_flights_by_query_time(self, model={}, limit=10, page_number=0, query_time=None, airport_code=None,
-                                  callback=None):
+    async def get_flights_by_query_time(self, model={}, limit=10, page_number=0, query_time=None, airport_code=None,
+                                        callback=None):
         session = self.db_session
         result = {}
         meta_obj = {}
@@ -36,8 +36,7 @@ class Dao(object):
         except Exception as e:
             print(e)
             result = None
-        IOLoop.instance().add_timeout(time.time() + 0.05, lambda:
-        callback(result))
+        return result
 
     def create(self, model={}, call_back=None):
         """
@@ -72,8 +71,8 @@ class Dao(object):
         session.close()
         callback(result)
 
-    def bulk_upsert_by_query_time_ap_code(self, object_list=[], model={}, query_time=None, airport_code=None,
-                                          callback=None):
+    async def bulk_upsert_by_query_time_ap_code(self, object_list=[], model={}, query_time=None, airport_code=None,
+                                                callback=None):
         session = self.db_session
         obj_list = object_list
         result = None
@@ -96,5 +95,4 @@ class Dao(object):
             print(e)
             result = None
         session.close()
-        IOLoop.instance().add_timeout(time.time() + 0.05, lambda:
-        callback(result))
+        return result

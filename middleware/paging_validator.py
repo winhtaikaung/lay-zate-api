@@ -5,7 +5,7 @@ from functools import wraps
 
 def base_query_string_validator(f):
     @wraps(f)
-    def wrapper(self, airport_code, arv_dep_type, query_time):
+    async def wrapper(self, airport_code, arv_dep_type, query_time):
         """
         This method will intercept the request and validate whether token includes in query parameter or not
         :param self: 
@@ -29,24 +29,22 @@ def base_query_string_validator(f):
                         limit = int(limit)
                         page = int(page)
                         if int(limit) <= 100:
-                            f(self, airport_code, arv_dep_type, query_time)
-                            return None
+                            await f(self, airport_code, arv_dep_type, query_time)
+                            # return None
                         else:
                             self.respond("Limit size should be lower than 100", 400)
                     except Exception as e:
-                        self.respond("Invalid Param", 400)
+                        self.error(str(e), 502)
                 else:
                     self.respond("Invalid Param", 400)
 
-
-
             except Exception as e:
-                self.respond("Invalid Param", 400)
+                self.error(str(e), 500)
 
         # Redirect to Home Page
         elif self.get_query_arguments("id", True):
-            f(self, airport_code, arv_dep_type, query_time)
-            return None
+            await f(self, airport_code, arv_dep_type, query_time)
+            # return None
         else:
             self.respond("Invalid id or limit", 400)
 

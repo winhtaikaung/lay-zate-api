@@ -1,7 +1,7 @@
 import json
+import os
 import sys
 
-import os
 import requests
 
 

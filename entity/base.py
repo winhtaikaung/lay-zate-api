@@ -1,4 +1,5 @@
-import uuid as uuid
+import math
+import time
 
 import sqlalchemy as sa
 from sqlalchemy.ext.declarative import declarative_base
@@ -9,12 +10,18 @@ DBSession = scoped_session(sessionmaker())
 
 
 def gen_uuid():
-    return uuid.uuid4()
+    import uuid
+    return str(uuid.uuid4())
+
+
+def gen_cursor():
+    return math.ceil(time.time())
 
 
 class BaseModel(object):
-    query = DBSession.query_property()
-    id = sa.Column(sa.String(255), primary_key=True, unique=True, default=str(gen_uuid()))
+    id = sa.Column(sa.String(255), primary_key=True, unique=True, default=gen_uuid)
+    updated_timestamp = sa.Column(sa.BIGINT(), index=True, default=gen_cursor)
+    created_timestamp = sa.Column(sa.BIGINT(), index=True, default=gen_cursor)
 
     @declared_attr
     def __tablename__(self):

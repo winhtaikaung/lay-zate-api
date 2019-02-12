@@ -22,7 +22,7 @@ class JSONEncoder(json.JSONEncoder):
 
 
 class BaseHandler(tornado.web.RequestHandler):
-    @tornado.web.asynchronous
+
     def post(self, action):
         try:
             # Fetch appropriate handler
@@ -45,11 +45,22 @@ class BaseHandler(tornado.web.RequestHandler):
 
     def respond(self, data={}, metadata={}, code=200):
         self.set_status(code)
-        self.write(JSONEncoder().encode({
+        self.write({
 
             "data": data,
             "meta_data": metadata,
             # "status": code,
-        }))
+        })
+        self.set_header("Content-Type", "application/json")
+        self.finish()
+
+    def error(self, data={}, code=500):
+        self.set_status(code)
+        self.write({
+
+            "error": data,
+            "code": code,
+            # "status": code,
+        })
         self.set_header("Content-Type", "application/json")
         self.finish()

@@ -14,8 +14,8 @@ class CacheRepository(object):
         self.db_session = DBSession
         pass
 
-    def get_raw(self, base_airport, query_time, query_type,
-                callback=None):
+    async def get_raw(self, base_airport, query_time, query_type,
+                      callback=None):
         session = self.db_session
         result = None
         sql = "SELECT * FROM raw where raw._base_airport =:base_airport AND raw.query_time=:query_time AND query_type =:query_type  LIMIT 0,1"
@@ -32,10 +32,10 @@ class CacheRepository(object):
             print(e)
             result = None
         session.close()
-        callback(result)
+        return result
 
-    def upsert_and_cache_raw(self, base_airport, query_time, query_type, response,
-                             callback=None):
+    async def upsert_and_cache_raw(self, base_airport, query_time, query_type, response,
+                                   ):
         session = self.db_session
         result = {"response_html": ""}
         sql = "SELECT * FROM raw where raw._base_airport =:base_airport AND raw.query_time=:query_time AND query_type =:query_type  LIMIT 0,1"
@@ -72,4 +72,4 @@ class CacheRepository(object):
             session.rollback()
             result = e
         session.close()
-        callback(result)
+        return result

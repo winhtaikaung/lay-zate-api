@@ -1,4 +1,5 @@
 import os
+
 from sqlalchemy import create_engine
 
 from entity.base import Base as model_base
@@ -9,16 +10,31 @@ url = url.format(os.environ["DB_USER_NAME"], os.environ["DB_PASSWORD"], os.envir
                  os.environ["DB_NAME"])
 
 # db_engine = create_engine(options.db_connection_str) for sqlite
-db_engine = create_engine(url)
+db_engine = create_engine(url, echo=False)
 
 
 class DBHelper:
     def __init__(self):
         DBSession.configure(bind=db_engine)
+
         pass
+
+    def gen_events(self):
+        with db_engine.connect() as con:
+            con.execute("SET GLOBAL event_scheduler = `ON`;")
+            con.execute("DROP EVENT IF EXISTS `CLEAN_RAW`;")
+            con.execute(
+                "CREATE EVENT `CLEAN_RAW` ON SCHEDULE EVERY 60 SECOND DO DELETE FROM raw WHERE updated_timestamp < DATE_SUB(NOW(),  INTERVAL 6e+7 MINUTE_MICROSECOND)")
+            con.execute("DROP EVENT IF EXISTS `CLEAN_ARRIVAL`;")
+            con.execute(
+                "CREATE EVENT `CLEAN_ARRIVAL` ON SCHEDULE EVERY 60 SECOND DO DELETE FROM arrival WHERE updated_timestamp < DATE_SUB(NOW(),  INTERVAL 6e+7 MINUTE_MICROSECOND)")
+            con.execute("DROP EVENT IF EXISTS `CLEAN_DEPARTURE`;")
+            con.execute(
+                "CREATE EVENT `CLEAN_DEPARTURE` ON SCHEDULE EVERY 60 SECOND DO DELETE FROM departure WHERE updated_timestamp < DATE_SUB(NOW(),  INTERVAL 6e+7 MINUTE_MICROSECOND)")
 
     def gen_schema(self):
         model_base.metadata.create_all(db_engine)
+        self.gen_events()
 
 
 def generate_meta(table_view_name, limit, page, page_count):
@@ -57,10 +73,6 @@ def gen_offset_from_page(page, limit):
     if page is 0:
         page = 1
     return (page * limit) - limit
-    # if page is 1:
-    #     return 0
-    # else:
-    #     return ((page - 1) * limit) + 1
 
 
 def serialize_alchemy(alchemy_object_list):
