@@ -4,6 +4,7 @@ import os
 import urllib
 
 import tornado
+from pyquery import PyQuery as pq
 from tornado import gen
 from tornado.httpclient import AsyncHTTPClient
 
@@ -29,6 +30,15 @@ def get_api_result(self, api_result):
 
 class FlightHandler(BaseHandler):
 
+    async def extract_table(self, base_url, params):
+        flight_requst = await AsyncHTTPClient().fetch(base_url, body=urllib.parse.urlencode(params), method="POST",
+                                                      headers={'Content-Type': 'application/x-www-form-urlencoded',
+                                                               'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Thunderbird/45.3.0'})
+
+        d = pq(flight_requst.body)
+        table = d.find(".tableListingTable").html()
+        return str(table).encode('utf-8')
+
     @base_query_string_validator
     async def get(self, airport_code, arv_dep_type, query_time):
         d = datetime.datetime.utcnow()
@@ -52,60 +62,55 @@ class FlightHandler(BaseHandler):
         http = AsyncHTTPClient()
         if initial_cache is not None:
             if unixtime - initial_cache.updated_timestamp > 1000:
-
-                flight_requst = await http.fetch(base_url, body=urllib.parse.urlencode(params), method="POST",
-                                                 headers={'Content-Type': 'application/x-www-form-urlencoded',
-                                                          'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Thunderbird/45.3.0'})
+                table = await self.extract_table(base_url, params)
                 raw_response = await cache_repo.upsert_and_cache_raw(airport_code, query_time, arv_dep_type,
-                                                                     flight_requst.body)
+                                                                     table)
 
                 if raw_response["response_html"] is not None:
                     response = await LayZateScrapper.get_scrapped_result(self, raw_response["response_html"],
                                                                          airport_code, query_time)
                     if arv_dep_type is '0':
-                        await dep_repo.bulk_upsert_by_query_time_ap_code(response, Departure, query_time,
-                                                                         airport_code)
-                        api_result = await dep_repo.get_flights_by_query_time(Departure, limit, page,
-                                                                              query_time,
-                                                                              airport_code)
+                        dep_repo.bulk_upsert_by_query_time_ap_code(response, Departure, query_time,
+                                                                   airport_code)
+                        api_result = dep_repo.get_flights_by_query_time(Departure, limit, page,
+                                                                        query_time,
+                                                                        airport_code)
                         get_api_result(self, api_result)
                     else:
-                        await arrv_repo.bulk_upsert_by_query_time_ap_code(response, Arrival, query_time,
-                                                                          airport_code)
-                        api_result = await dep_repo.get_flights_by_query_time(Arrival, limit, page,
-                                                                              query_time,
-                                                                              airport_code)
+                        arrv_repo.bulk_upsert_by_query_time_ap_code(response, Arrival, query_time,
+                                                                    airport_code)
+                        api_result = dep_repo.get_flights_by_query_time(Arrival, limit, page,
+                                                                        query_time,
+                                                                        airport_code)
                         get_api_result(self, api_result)
             else:
                 if arv_dep_type is '0':
-                    api_result = await dep_repo.get_flights_by_query_time(Departure, limit, page, query_time,
-                                                                          airport_code)
+                    api_result = dep_repo.get_flights_by_query_time(Departure, limit, page, query_time,
+                                                                    airport_code)
                     get_api_result(self, api_result)
                 else:
-                    api_result = await dep_repo.get_flights_by_query_time(Arrival, limit, page, query_time,
-                                                                          airport_code)
+                    api_result = dep_repo.get_flights_by_query_time(Arrival, limit, page, query_time,
+                                                                    airport_code)
                     get_api_result(self, api_result)
 
         else:
-            flight_requst = await http.fetch(base_url, body=urllib.parse.urlencode(params), method="POST",
-                                             headers={'Content-Type': 'application/x-www-form-urlencoded',
-                                                      'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Thunderbird/45.3.0'})
+            table = await self.extract_table(base_url, params)
             raw_response = await cache_repo.upsert_and_cache_raw(airport_code, query_time, arv_dep_type,
-                                                                 flight_requst.body)
+                                                                 table)
             if raw_response["response_html"] is not None:
                 response = await LayZateScrapper.get_scrapped_result(self, raw_response["response_html"],
                                                                      airport_code, query_time)
 
             if arv_dep_type is '0':
-                await dep_repo.bulk_upsert_by_query_time_ap_code(response, Departure, query_time,
-                                                                 airport_code)
-                api_result = await dep_repo.get_flights_by_query_time(Departure, limit, page, query_time,
-                                                                      airport_code)
+                dep_repo.bulk_upsert_by_query_time_ap_code(response, Departure, query_time,
+                                                           airport_code)
+                api_result = dep_repo.get_flights_by_query_time(Departure, limit, page, query_time,
+                                                                airport_code)
                 get_api_result(self, api_result)
             else:
-                await arrv_repo.bulk_upsert_by_query_time_ap_code(response, Arrival, query_time, airport_code)
-                api_result = await dep_repo.get_flights_by_query_time(Arrival, limit, page, query_time,
-                                                                      airport_code)
+                arrv_repo.bulk_upsert_by_query_time_ap_code(response, Arrival, query_time, airport_code)
+                api_result = dep_repo.get_flights_by_query_time(Arrival, limit, page, query_time,
+                                                                airport_code)
                 get_api_result(self, api_result)
 
 

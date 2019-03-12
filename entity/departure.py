@@ -1,5 +1,6 @@
 import sqlalchemy as sa
 from sqlalchemy import String
+from sqlalchemy.dialects.mysql import LONGTEXT
 
 from entity.base import Base
 
@@ -12,3 +13,5 @@ class Departure(Base):
     destination = sa.Column(String(50))
     departure = sa.Column(String(20))
     status = sa.Column(String(30))
+    fs_url = sa.Column(LONGTEXT())
+    fs_api = sa.Column(LONGTEXT())

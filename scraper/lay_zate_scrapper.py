@@ -1,3 +1,4 @@
+import re
 import time
 
 from pyquery import PyQuery as pq
@@ -19,9 +20,9 @@ class LayZateScrapper(object):
             "query_time": query_time
         }
         d = pq(html)
-        fetch_header = pq(d.find(".tableListingTable").html()).find(".header")
+        fetch_header = d.find(".header")
 
-        flight_list_html = pq(d.find(".tableListingTable").html()) \
+        flight_list_html = pq(d.html()) \
             .remove(".header") \
             .find('tr')
         flight_list_html.each(lambda e, fl_row:
@@ -45,8 +46,22 @@ class LayZateScrapper(object):
                                     "id": str(gen_uuid())
                                 })
                                 )
+        if bool(col_dict) is True:
+            flight_number = col_dict["flight"].replace(" ", "")
+            col_dict["flight"] = flight_number
+            number = re.split('(?<![A-Z0-9])[A-Z0-9]{2}', flight_number)
+            import datetime
+            now = datetime.datetime.now()
 
-        return col_dict
+            col_dict["fs_url"] = "https://www.flightstats.com/v2/flight-tracker/{0}/{1}/{2}/{3}/{4}".format(
+                flight_number[0:2],
+                number[1], str(now.year), str(now.month), str(now.day))
+
+            col_dict["fs_api"] = "https://www.flightstats.com/v2/api-next/flight-tracker/{0}/{1}/{2}/{3}/{4}".format(
+                flight_number[0:2],
+                number[1], str(now.year), str(now.month), str(now.day))
+
+            return col_dict
 
     async def get_scrapped_result(self, html, base_airport, query_time):
         return LayZateScrapper.scrap_response(self, html, base_airport, query_time)

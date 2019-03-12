@@ -23,22 +23,35 @@ class MainHandler(BaseHandler):
         self.respond("Not Found", 404)
 
 
-class Application(tornado.web.Application):
-    def __init__(self):
-        handlers = [
-            (r"/?", MainHandler)
-        ]
+def make_app(options):
+    handlers = [
+        (r"/?", MainHandler)
+    ]
 
-        # This Method is to add all the routes from Route Package
-        handlers.extend(flight_routes)
+    # This Method is to add all the routes from Route Package
+    handlers.extend(flight_routes)
 
-        tornado.web.Application.__init__(self, handlers, debug=True)
-        tornado.options.parse_command_line()
+    return tornado.web.Application(handlers, debug=options.debug)
 
 
 def main():
     DBHelper().gen_schema()
-    app = Application()
+
+    tornado.options.define("port", default=os.environ['PORT'] if 'PORT' in os.environ else 3000)
+    # Specify whether the app should run in debug mode
+    # Debug mode restarts the app automatically on file changes
+    tornado.options.define("debug",
+                           default=False if 'APP_ENV' in os.environ and os.environ[
+                               'APP_ENV'] == 'production' else True)
+
+    # Read settings/options from command line
+    tornado.options.parse_command_line()
+
+    # Access the settings defined
+    options = tornado.options.options
+
+    app = make_app(options)
+
     app.listen(os.environ["PORT"])
     tornado.ioloop.IOLoop.instance().start()
 
