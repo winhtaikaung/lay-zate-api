@@ -24,13 +24,13 @@ class DBHelper:
             # con.execute("SET GLOBAL event_scheduler = `ON`;")
             con.execute("DROP EVENT IF EXISTS `CLEAN_RAW`;")
             con.execute(
-                "CREATE EVENT `CLEAN_RAW` ON SCHEDULE EVERY 60 SECOND DO DELETE FROM raw WHERE updated_timestamp < DATE_SUB(NOW(),  INTERVAL 60000 SECOND_MICROSECOND)")
+                "CREATE EVENT `CLEAN_RAW` ON SCHEDULE EVERY 900 SECOND DO DELETE FROM raw WHERE updated_timestamp < DATE_SUB(NOW(),  INTERVAL 60000 SECOND_MICROSECOND)")
             con.execute("DROP EVENT IF EXISTS `CLEAN_ARRIVAL`;")
             con.execute(
-                "CREATE EVENT `CLEAN_ARRIVAL` ON SCHEDULE EVERY 60 SECOND DO DELETE FROM arrival WHERE updated_timestamp < DATE_SUB(NOW(),  INTERVAL 60000 SECOND_MICROSECOND)")
+                "CREATE EVENT `CLEAN_ARRIVAL` ON SCHEDULE EVERY 900 SECOND DO DELETE FROM arrival WHERE updated_timestamp < DATE_SUB(NOW(),  INTERVAL 60000 SECOND_MICROSECOND)")
             con.execute("DROP EVENT IF EXISTS `CLEAN_DEPARTURE`;")
             con.execute(
-                "CREATE EVENT `CLEAN_DEPARTURE` ON SCHEDULE EVERY 60 SECOND DO DELETE FROM departure WHERE updated_timestamp < DATE_SUB(NOW(),  INTERVAL 60000 SECOND_MICROSECOND)")
+                "CREATE EVENT `CLEAN_DEPARTURE` ON SCHEDULE EVERY 900 SECOND DO DELETE FROM departure WHERE updated_timestamp < DATE_SUB(NOW(),  INTERVAL 60000 SECOND_MICROSECOND)")
 
     def gen_schema(self):
         model_base.metadata.create_all(db_engine)
