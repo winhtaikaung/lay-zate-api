@@ -21,7 +21,7 @@ class DBHelper:
 
     def gen_events(self):
         with db_engine.connect() as con:
-            con.execute("SET GLOBAL event_scheduler = `ON`;")
+            # con.execute("SET GLOBAL event_scheduler = `ON`;")
             con.execute("DROP EVENT IF EXISTS `CLEAN_RAW`;")
             con.execute(
                 "CREATE EVENT `CLEAN_RAW` ON SCHEDULE EVERY 60 SECOND DO DELETE FROM raw WHERE updated_timestamp < DATE_SUB(NOW(),  INTERVAL 60000 SECOND_MICROSECOND)")
