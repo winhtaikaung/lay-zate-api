@@ -8,4 +8,4 @@ pyquery==1.3.0
 python-dotenv==0.10.1
 SQLAlchemy==1.2.0
 tornado==5.1.1
-urllib3==1.22
+urllib3==1.23
