@@ -42,7 +42,6 @@ class FlightHandler(BaseHandler):
 
     @base_query_string_validator
     async def get(self, airport_code, arv_dep_type, query_time):
-        print(self.request)
         d = datetime.datetime.utcnow()
         unixtime = calendar.timegm(d.utctimetuple())
         response = []
@@ -125,7 +124,6 @@ class AirportCodeFlightHandler(BaseHandler):
         now = datetime.datetime.now()
         base_url = str(os.environ["TRACK_URL"]).format(
             flight_code, flight_number, str(now.year), str(now.month), str(now.day))
-        print(base_url)
         try:
             flight_requst = await AsyncHTTPClient().fetch(base_url, method="GET",
                                                           headers={'Content-Type': 'application/x-www-form-urlencoded',
@@ -134,5 +132,4 @@ class AirportCodeFlightHandler(BaseHandler):
             self.respond(json.loads(
                 flight_requst.body.decode('utf8'))["data"], 200)
         except Exception as e:
-            print(e)
             self.respond(str(e), 500)
