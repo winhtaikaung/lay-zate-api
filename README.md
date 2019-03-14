@@ -1,5 +1,6 @@
 
   
+  
 # LayZate Api
 
 Layzate api to provide the real time flight list and flight details information for each airport
@@ -19,6 +20,7 @@ The API is [REST API](http://en.wikipedia.org/wiki/Representational_State_Transf
 ` [GET]  /api/v1/{:IATACODE}/{:DEP_ARV}/{POT}?limit={limit}&page={page}`
 
 Eg http://layzate.herokuapp.com/api/v1/MDL/0/5?limit=100&page=1
+
 | Name |param type| DataType |Format|
 |--|--|--|--|
 | `IATACODE` |path parameter| `CHAR(3)` |`RGN`|
@@ -31,6 +33,7 @@ Eg http://layzate.herokuapp.com/api/v1/MDL/0/5?limit=100&page=1
 `[GET]  /api/v1/track/{FLIGHT_CODE}/{FLIGHT_NUMBER}`
 
 Eg. http://layzate.herokuapp.com/api/v1/track/WE/310
+
 | Name |param type| DataType |Format|
 |--|--|--|--|
 | `FLIGHT_CODE` |path parameter| `CHAR(2)` |`RGN`|
