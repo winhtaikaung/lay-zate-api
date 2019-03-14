@@ -4,6 +4,7 @@ import os
 import urllib
 
 import tornado
+import json
 from pyquery import PyQuery as pq
 from tornado import gen
 from tornado.httpclient import AsyncHTTPClient
@@ -41,12 +42,14 @@ class FlightHandler(BaseHandler):
 
     @base_query_string_validator
     async def get(self, airport_code, arv_dep_type, query_time):
+        print(self.request)
         d = datetime.datetime.utcnow()
         unixtime = calendar.timegm(d.utctimetuple())
         response = []
-        api_result = [];
+        api_result = []
 
-        limit = self.get_argument("limit", int(10), True)  # <--- get query_argement
+        limit = self.get_argument("limit", int(
+            10), True)  # <--- get query_argement
         page = self.get_argument("page", int(1), True)
         params = {'language': 'English',
                   'startAction': 'AirportFlightStatus',
@@ -58,6 +61,7 @@ class FlightHandler(BaseHandler):
         arrv_repo = ArrvRepository()
         cache_repo = CacheRepository()
         base_url = str(os.environ["FLIGHT_BASE_URL"]).format(airport_code)
+
         initial_cache = await cache_repo.get_raw(airport_code, query_time, arv_dep_type)
         http = AsyncHTTPClient()
         if initial_cache is not None:
@@ -108,14 +112,27 @@ class FlightHandler(BaseHandler):
                                                                 airport_code)
                 get_api_result(self, api_result)
             else:
-                arrv_repo.bulk_upsert_by_query_time_ap_code(response, Arrival, query_time, airport_code)
+                arrv_repo.bulk_upsert_by_query_time_ap_code(
+                    response, Arrival, query_time, airport_code)
                 api_result = dep_repo.get_flights_by_query_time(Arrival, limit, page, query_time,
                                                                 airport_code)
                 get_api_result(self, api_result)
 
 
 class AirportCodeFlightHandler(BaseHandler):
-    @tornado.web.asynchronous
-    @gen.engine
-    def get(self, airport_code):
-        self.respond({"airport_code": str(airport_code)}, {}, 200)
+    async def get(self, flight_code, flight_number):
+        import datetime
+        now = datetime.datetime.now()
+        base_url = str(os.environ["TRACK_URL"]).format(
+            flight_code, flight_number, str(now.year), str(now.month), str(now.day))
+        print(base_url)
+        try:
+            flight_requst = await AsyncHTTPClient().fetch(base_url, method="GET",
+                                                          headers={'Content-Type': 'application/x-www-form-urlencoded',
+                                                                   'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Thunderbird/45.3.0'})
+
+            self.respond(json.loads(
+                flight_requst.body.decode('utf8'))["data"], 200)
+        except Exception as e:
+            print(e)
+            self.respond(str(e), 500)

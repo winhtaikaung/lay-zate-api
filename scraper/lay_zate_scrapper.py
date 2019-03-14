@@ -36,6 +36,7 @@ class LayZateScrapper(object):
         return flight_list
 
     def scrap_row(self, row, key_val, base_airport, query_time):
+
         col_dict = {}
         pq(row).find("td").each(lambda i, td:
                                 col_dict.update({
@@ -60,7 +61,9 @@ class LayZateScrapper(object):
             col_dict["fs_api"] = "https://www.flightstats.com/v2/api-next/flight-tracker/{0}/{1}/{2}/{3}/{4}".format(
                 flight_number[0:2],
                 number[1], str(now.year), str(now.month), str(now.day))
-
+            col_dict["track_url"] = "{0}://{1}/api/v1/track/{2}/{3}".format(
+                self.request.protocol, self.request.host, flight_number[0:2],
+                number[1])
             return col_dict
 
     async def get_scrapped_result(self, html, base_airport, query_time):

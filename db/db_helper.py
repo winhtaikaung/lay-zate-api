@@ -15,13 +15,16 @@ db_engine = create_engine(url, echo=False)
 
 class DBHelper:
     def __init__(self):
+        with db_engine.connect() as con:
+            con.execute("DROP TABLE IF EXISTS `arrival`;")
+            con.execute("DROP TABLE IF EXISTS `departure`;")
+            con.execute("DROP TABLE IF EXISTS `raw`;")
         DBSession.configure(bind=db_engine)
 
         pass
 
     def gen_events(self):
         with db_engine.connect() as con:
-            # con.execute("SET GLOBAL event_scheduler = `ON`;")
             con.execute("DROP EVENT IF EXISTS `CLEAN_RAW`;")
             con.execute(
                 "CREATE EVENT `CLEAN_RAW` ON SCHEDULE EVERY 900 SECOND DO DELETE FROM raw WHERE updated_timestamp < DATE_SUB(NOW(),  INTERVAL 60000 SECOND_MICROSECOND)")
@@ -47,7 +50,8 @@ def generate_meta(table_view_name, limit, page, page_count):
     :return:
     """
     meta_object = {"links": {}, "current": None, "first": 1}
-    page_count = (page_count % limit) is 0 and int(page_count / limit) or int(page_count / limit) + 1
+    page_count = (page_count % limit) is 0 and int(
+        page_count / limit) or int(page_count / limit) + 1
 
     url = "/api/v1/%s?page=%d&limit=%d"
     links = {"self": url % (table_view_name, page, limit),
@@ -76,7 +80,7 @@ def gen_offset_from_page(page, limit):
 
 
 def serialize_alchemy(alchemy_object_list):
-    user_dictionary = [];
+    user_dictionary = []
 
     for row in alchemy_object_list:
         fields = {}

@@ -7,7 +7,8 @@ try:
     import urlparse
 except ImportError:
     import urllib.parse as urlparse
-import json, logging
+import json
+import logging
 
 from error import InvalidJSON
 

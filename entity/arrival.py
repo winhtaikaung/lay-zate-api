@@ -15,3 +15,4 @@ class Arrival(Base):
     status = sa.Column(String(30))
     fs_url = sa.Column(LONGTEXT())
     fs_api = sa.Column(LONGTEXT())
+    track_url = sa.Column(LONGTEXT())
